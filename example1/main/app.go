@@ -3,13 +3,45 @@ package main
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
 func main() {
-	fmt.Println(Unpack("44"))
+	fmt.Println(Top10("cat and dog, one dog,two cats and one man"))
+}
+
+func Top10(srcString string) []string {
+	words := strings.Fields(srcString)
+	wordCounter := make(map[string]int)
+
+	for _, word := range words {
+		wordCounter[word]++
+	}
+
+	type entrySlice struct {
+		key   string
+		value int
+	}
+
+	var sortedSlice []entrySlice
+
+	for key, value := range wordCounter {
+		sortedSlice = append(sortedSlice, entrySlice{key, value})
+	}
+
+	sort.Slice(sortedSlice, func(i, j int) bool {
+		return sortedSlice[j].value < sortedSlice[i].value
+	})
+
+	var resSlice []string
+	for i := 0; i < min(10, len(sortedSlice)); i++ {
+		resSlice = append(resSlice, sortedSlice[i].key)
+	}
+
+	return resSlice
 }
 
 var ErrInvalidString = errors.New("invalid string")
