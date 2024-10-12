@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
@@ -44,21 +43,28 @@ var text = `Как видите, он  спускается  по  лестни�
 		В этот вечер...`
 
 func main() {
-	fmt.Println(Top10(text))
+	fmt.Println(Unpack("১4"))
 }
 
-func Top10(srcString string) []string {
-	words := strings.Fields(srcString)
+type entrySlice struct {
+	key   string
+	value int
+}
+
+func countWordsInText(text string) map[string]int {
 	wordCounter := make(map[string]int)
+
+	words := strings.Fields(text)
 
 	for _, word := range words {
 		wordCounter[word]++
 	}
 
-	type entrySlice struct {
-		key   string
-		value int
-	}
+	return wordCounter
+}
+
+func Top10(srcString string) []string {
+	wordCounter := countWordsInText(srcString)
 
 	var sortedSlice []entrySlice
 
@@ -92,42 +98,52 @@ func Unpack(srcString string) (string, error) {
 		return "", nil
 	}
 
-	if isCorrect, err := Verify(srcString); isCorrect && err == nil {
+	isCorrect, err := verify(srcString)
+	if err != nil {
+		return "", err
+	}
+
+	if isCorrect {
 		runes := []rune(srcString)
 		size := len(runes)
 		for i := 0; i < size-1; i++ {
-			if !unicode.IsDigit(runes[i+1]) && !unicode.IsDigit(runes[i]) {
+			if !isDigit(runes[i+1]) && !isDigit(runes[i]) {
 				builder.WriteRune(runes[i])
 			}
-			if !unicode.IsDigit(runes[i]) && unicode.IsDigit(runes[i+1]) {
+			if !isDigit(runes[i]) && isDigit(runes[i+1]) {
 				repeatCount, _ := strconv.Atoi(string(runes[i+1]))
-				if repeatCount != 0 {
-					builder.WriteString(strings.Repeat(string(runes[i]), repeatCount))
-				}
+				repeatRuneWriter(runes[i], repeatCount, &builder)
 			}
 		}
-		if !unicode.IsDigit(runes[size-1]) {
+		if !isDigit(runes[size-1]) {
 			builder.WriteRune(runes[size-1])
 		}
-	} else {
-		return "", err
 	}
 
 	return builder.String(), nil
 }
 
-func Verify(srcString string) (bool, error) {
+func isDigit(r rune) bool {
+	return '0' <= r && r <= '9'
+}
 
+func verify(srcString string) (bool, error) {
 	runes := []rune(srcString)
-	if unicode.IsDigit(runes[0]) {
+	if isDigit(runes[0]) {
 		return false, ErrInvalidString
 	}
 
 	for i := 1; i < len(runes); i++ {
-		if unicode.IsDigit(runes[i]) && unicode.IsDigit(runes[i-1]) {
+		if isDigit(runes[i]) && isDigit(runes[i-1]) {
 			return false, ErrInvalidString
 		}
 	}
 
 	return true, nil
+}
+
+func repeatRuneWriter(r rune, repeatCount int, builder *strings.Builder) {
+	if repeatCount != 0 {
+		builder.WriteString(strings.Repeat(string(r), repeatCount))
+	}
 }
