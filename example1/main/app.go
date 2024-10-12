@@ -43,7 +43,7 @@ var text = `Как видите, он  спускается  по  лестни�
 		В этот вечер...`
 
 func main() {
-	fmt.Println(Unpack("১4"))
+	fmt.Println(Unpack(text))
 }
 
 type entrySlice struct {
